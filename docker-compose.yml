@@ -1,0 +1,50 @@
+version: "3"
+
+services:
+
+    airflow-webserver:
+        hostname: airflow
+        container_name: airflow
+        image: andrejunior/airflow-spark:latest
+        restart: always
+        networks:
+            - flix
+        # depends_on:
+        #     - minio
+        #     - spark-master
+        #     - spark-worker
+        environment:   
+            - AIRFLOW__CORE__LOAD_EXAMPLES=False
+            - LOAD_EX=n
+            - AIRFLOW__WEBSERVER__RBAC=False     
+        volumes:
+            - airflow-data:/usr/local/airflow/data
+            # Disable authentication UI
+            - ./airflow/config/webserver_config.py:/usr/local/airflow/webserver_config.py            
+            - ./airflow/dags:/usr/local/airflow/dags
+            - ./airflow/logs:/opt/airflow/logs
+            # Install pymongo & tweepy 
+            - ./airflow/requirements.txt:/requirements.txt
+            # Spark applications
+            - ./airflow/spark/applications:/usr/local/spark/applications            
+            - ./airflow/spark/assets:/usr/local/spark/assets       
+        ports:
+            - "8085:8080"
+        command: webserver
+        healthcheck:
+            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            interval: 30s
+            timeout: 30s
+            retries: 3
+        deploy:
+          resources:
+            limits:
+              memory: 1.5G     
+
+volumes:
+    airflow-data:
+
+networks:
+    flix:
+        driver: bridge
+

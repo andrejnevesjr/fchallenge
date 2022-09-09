@@ -1,0 +1,10 @@
+celery
+kombu
+tornado
+werkzeug
+pyspark==3.2.1
+SQLAlchemy
+wtforms
+# new itens no present on image
+pymongo==3.3.0
+tweepy==3.10.0
