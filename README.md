@@ -113,11 +113,7 @@ docker-compose -f docker-compose.yml up -d
 
 ### 3. Airflow: Create user for UI
 
-To access Airflow UI is required to create a new user account, so in our case, we are going to create an fictional user with an Admin role attached.
-
-  
-
-> **NOTE**: Before **RUN** the command below please confirm that Airflow is up and running, it can be checked by accessing the URL [http://localhost:8085](http://localhost:8085). Have in mind that in the first execution it may take 1 to 2 minutes :stuck_out_tongue_winking_eye:
+> **NOTE**: Before **ADD** the connctions below please confirm that Airflow is up and running, it can be checked by accessing the URL [http://localhost:8085](http://localhost:8085). Have in mind that in the first execution it may take 1 to 2 minutes :stuck_out_tongue_winking_eye:
 
 
 ### 3.1 Airflow: MongoDB, MinIO & Spark connections configuration
@@ -206,7 +202,7 @@ Please check out the documentation available on folder docs under the file [flix
 
 |        Application        |URL                          |Credentials                         |
 |----------------|-------------------------------|-----------------------------|
-|Airflow| [http://localhost:8085](http://localhost:8085) | ``` User: flix``` <br> ``` Pass: flix``` |         |
+|Airflow| [http://localhost:8085](http://localhost:8085) | |         |
 |MinIO| [http://localhost:9001](http://localhost:9001) | ``` User: flix``` <br> ``` Pass: flix#Pass#2022``` |           |
 |Spark (Master) | [http://localhost:8081](http://localhost:8081)|  |         |
   
