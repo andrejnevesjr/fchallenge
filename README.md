@@ -89,7 +89,7 @@ This challenge is currently structured with the following specifications.
 To setup properly our environment do not forget to add your API credentials to the config file.
 You can find this file on path [./airflow/dags/credentials.ini](./airflow/dags/credentials.ini)
 
-    ![](./imgs/credentials.png "credentials")
+![](./imgs/credentials.png "credentials")
 
 ### 2. Setup environment
 
