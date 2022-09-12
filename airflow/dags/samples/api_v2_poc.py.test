@@ -1,0 +1,189 @@
+"""
+Twitter API V2 - Tests
+Dependencies: Tweepy, Pandas
+Based on: https://towardsdatascience.com/an-extensive-guide-to-collecting-tweets-from-twitter-api-v2-for-academic-research-using-python-3-518fcb71df2a
+"""
+import requests
+import os
+import pandas as pd
+from datetime import datetime, timedelta, timezone
+
+# To add wait time between requests
+import time
+os.environ['TOKEN'] = '<YOUR TOKEN HERE>'
+
+
+def auth():
+    return os.getenv('TOKEN')
+
+
+def create_headers(bearer_token):
+    headers = {"Authorization": "Bearer {}".format(bearer_token)}
+    return headers
+
+
+def create_url_users(user_id: str):
+    # Change to the endpoint you want to collect data from
+    search_url = "https://api.twitter.com/2/users"
+
+    # change params based on the endpoint you are using
+    query_params = {'ids': user_id,
+                    'expansions': 'pinned_tweet_id',
+                    'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,url,username,verified,withheld'
+                    }
+    return (search_url, query_params)
+
+
+def create_url_search(keyword, start_date, end_date, max_results=100):
+
+    # Change to the endpoint you want to collect data from
+    search_url = "https://api.twitter.com/2/tweets/search/recent"
+
+    # change params based on the endpoint you are using
+    query_params = {'query': keyword,
+                    'start_time': start_date,
+                    'end_time': end_date,
+                    'max_results': max_results,
+                    'expansions': 'attachments.poll_ids,attachments.media_keys,author_id,entities.mentions.username,geo.place_id,in_reply_to_user_id,referenced_tweets.id,referenced_tweets.id.author_id',
+                    'tweet.fields': 'attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,possibly_sensitive,public_metrics,referenced_tweets,reply_settings,source,text,withheld',
+                    'user.fields': 'created_at,description,entities,id,location,name,pinned_tweet_id,profile_image_url,protected,public_metrics,url,username,verified,withheld',
+                    'place.fields': 'contained_within,country,country_code,full_name,geo,id,name,place_type',
+                    'media.fields': 'duration_ms,height,media_key,preview_image_url,type,url,width,public_metrics,non_public_metrics,organic_metrics,promoted_metrics',
+                    'next_token': {}}
+    return (search_url, query_params)
+
+
+def connect_to_endpoint(url, headers, params, next_token=None):
+    # params object received from create_url function
+    params['next_token'] = next_token
+    response = requests.request("GET", url, headers=headers, params=params)
+    print("Endpoint Response Code: " + str(response.status_code))
+    if response.status_code != 200:
+        print(response.text)
+        raise Exception(response.status_code, response.text)
+    return response.json()
+
+
+def uoload_to_s3(json_response, headers):
+
+    list_tweets = []
+
+    # Loop through each tweet
+    for tweet in json_response['data']:
+
+        user_url = create_url_users(tweet['author_id'])
+        user_response = connect_to_endpoint(
+            url=user_url[0],
+            headers=headers,
+            params=user_url[1])
+
+        user_data = user_response['data'][0]
+
+        # handling users without location on their profile
+        user_location = user_data['location'] if 'location' in user_data else None
+
+        # 1. Author
+        tw_account_id = tweet['author_id']
+        tw_account_location = user_location
+        tw_account_since = str(user_data['created_at'])
+
+        # 2. Time created
+        tw_created_at = str(tweet['created_at'])
+
+        # 3. Geolocation
+        if ('geo' in tweet):
+            geo = tweet['geo']['place_id']
+        else:
+            geo = " "
+
+        # 4. Tweet ID
+        tweet_id = tweet['id']
+
+        # 5. Language
+        lang = tweet['lang']
+
+        # 6. Tweet metrics
+        retweet_count = tweet['public_metrics']['retweet_count']
+        reply_count = tweet['public_metrics']['reply_count']
+        like_count = tweet['public_metrics']['like_count']
+        quote_count = tweet['public_metrics']['quote_count']
+
+        # 7. source
+        source = tweet['source']
+
+        # 8. Tweet text
+        text = tweet['text']
+
+        # Assemble all data in a list
+        res = [tw_account_id, tw_account_since, tw_account_location, tw_created_at, geo, tweet_id, lang, like_count,
+               quote_count, reply_count, retweet_count, source, text]
+        list_tweets.append(res)
+    print(list_tweets)
+
+
+def main():
+
+    # Inputs for tweets
+    bearer_token = auth()
+    headers = create_headers(bearer_token)
+    keyword = "#FlixBus lang:en"
+    start_date = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    # 'end_time' must be a minimum of 10 seconds prior to the request time.
+    end_date = (datetime.now(timezone.utc) - timedelta(seconds=30)).isoformat()
+    max_results = 100
+
+    # Total number of tweets we collected from the loop
+    total_tweets = 0
+
+    # Inputs
+    count = 0  # Counting tweets per time period
+    max_count = 100  # Max tweets per time period
+    flag = True
+    next_token = None
+
+    # Check if flag is true
+    while flag:
+        # Check if max_count reached
+        if count >= max_count:
+            break
+
+        url, query_params = create_url_search(keyword,
+                                              start_date,
+                                              end_date,
+                                              max_results)
+
+        json_response = connect_to_endpoint(url,
+                                            headers,
+                                            query_params,
+                                            next_token)
+
+        result_count = json_response['meta']['result_count']
+
+        if 'next_token' in json_response['meta']:
+            # Save the token to use for next call
+            next_token = json_response['meta']['next_token']
+            print("Next Token: ", next_token)
+            if result_count is not None and result_count > 0 and next_token is not None:
+                print("Start Date: ", start_date)
+                uoload_to_s3(json_response, headers)
+                count += result_count
+                total_tweets += result_count
+                time.sleep(5)
+        # If no next token exists
+        else:
+            if result_count is not None and result_count > 0:
+                print("-------------------")
+                print("Start Date: ", start_date)
+                uoload_to_s3(json_response, headers)
+                count += result_count
+                total_tweets += result_count
+                time.sleep(5)
+
+            # Since this is the final request, turn flag to false to move to the next time period.
+            flag = False
+            next_token = None
+        time.sleep(5)
+
+
+if __name__ == '__main__':
+    main()

@@ -8,3 +8,4 @@ wtforms
 # new itens no present on image
 pymongo==3.3.0
 tweepy==3.10.0
+minio

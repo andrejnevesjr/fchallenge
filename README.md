@@ -11,10 +11,8 @@
     - [1. Clone the Repository](#1-clone-the-repository)
     - [2. Setup environment](#2-setup-environment)
     - [3. Airflow: Create user for UI](#3-airflow-create-user-for-ui)
-    - [3.1 Airflow: MongoDB, MinIO & Spark connections configuration](#31-airflow-mongodb-minio--spark-connections-configuration)
-      - [MongoDB](#mongodb)
+    - [3.1 Airflow: MinIO connection configuration](#31-airflow-minio-connection-configuration)
       - [MinIO](#minio)
-      - [Spark](#spark)
   - [Pipeline](#pipeline)
   - [Stack](#stack)
   - [References](#references)
@@ -67,28 +65,10 @@ This challenge is currently structured with the following specifications.
 
    - port: 8085
 
-*  **MongoDB**: NoSQL 
-
-   - image: mongo:5.0
-
 
 *  **MinIO**: Object storage
 
    - image: bitnami/minio:latest
-
-  
-
-*  **spark-master**: Spark Master
-
-   - image: bitnami/spark:3.2.1
-
-   - port: 8081
-
-  
-
-*  **spark-worker**: Spark workers
-
-   - image: bitnami/spark:3.2.1
 
 
   
@@ -113,10 +93,10 @@ docker-compose -f docker-compose.yml up -d
 
 ### 3. Airflow: Create user for UI
 
-> **NOTE**: Before **ADD** the connctions below please confirm that Airflow is up and running, it can be checked by accessing the URL [http://localhost:8085](http://localhost:8085). Have in mind that in the first execution it may take 1 to 2 minutes :stuck_out_tongue_winking_eye:
+> **NOTE**: Before **ADD** the connections below please confirm that Airflow is up and running, it can be checked by accessing the URL [http://localhost:8085](http://localhost:8085). Have in mind that in the first execution it may take 1 to 2 minutes :stuck_out_tongue_winking_eye:
 
 
-### 3.1 Airflow: MongoDB, MinIO & Spark connections configuration
+### 3.1 Airflow: MinIO connection configuration
 
   
 
@@ -128,22 +108,6 @@ docker-compose -f docker-compose.yml up -d
 3. Click on + sign and fill in the necessary details for each source below:
     ![](./imgs/add_conn.png "add_conn")
   
-
-#### MongoDB
-  
-
-    Conn ID: mongo_conn    
-    Conn Type: Amazon S3    
-    Extra: consists of the JSON below:
-
-```
-
-```
-
-Click on save:
-
-![](./imgs/minio.png "minio")
-
 
 #### MinIO
   
@@ -163,28 +127,6 @@ Click on save:
 Click on save:
 
 ![](./imgs/minio.png "minio")
-
-  
-
-#### Spark
-
-  
-
-    Conn ID: spark_conn    
-    Host: spark://spark    
-    Port: 7077
-    Extra: consists of the JSON below:
-
-```
-{"queue": "root.default"}
-```
-
-Click on save:
-
-![](./imgs/spark.png "spark")
-  
-
-
   
 
 ## Pipeline
@@ -204,8 +146,7 @@ Please check out the documentation available on folder docs under the file [flix
 |----------------|-------------------------------|-----------------------------|
 |Airflow| [http://localhost:8085](http://localhost:8085) | |         |
 |MinIO| [http://localhost:9001](http://localhost:9001) | ``` User: flix``` <br> ``` Pass: flix#Pass#2022``` |           |
-|Spark (Master) | [http://localhost:8081](http://localhost:8081)|  |         |
-  
+
 
 ## References
 
@@ -217,3 +158,4 @@ Please check out the documentation available on folder docs under the file [flix
 
 [pyjaime/docker-airflow-spark](https://github.com/pyjaime/docker-airflow-spark/)
 
+[developer.twitter.com](https://developer.twitter.com/en/docs/tutorials/)
