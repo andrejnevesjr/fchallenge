@@ -9,6 +9,7 @@
   - [:ship: Containers](#ship-containers)
   - [Step-by-Step](#step-by-step)
     - [1. Clone the Repository](#1-clone-the-repository)
+    - [1.1 Add Twitter API credentials](#11-add-twitter-api-credentials)
     - [2. Setup environment](#2-setup-environment)
     - [3. Airflow: Create user for UI](#3-airflow-create-user-for-ui)
     - [3.1 Airflow: MinIO connection configuration](#31-airflow-minio-connection-configuration)
@@ -82,6 +83,14 @@ This challenge is currently structured with the following specifications.
  
 `git clone https://github.com/ajnevesjr/flix-challenge`
 
+
+### 1.1 Add Twitter API credentials
+
+To setup properly our environment do not forget to add your API credentials to the config file.
+You can find this file on path [./airflow/dags/credentials.ini](./airflow/dags/credentials.ini)
+
+    ![](./imgs/credentials.png "credentials")
+
 ### 2. Setup environment
 
   
@@ -126,12 +135,12 @@ docker-compose -f docker-compose.yml up -d
 
 Click on save:
 
-![](./imgs/minio.png "minio")
+![](./imgs/minio_conn.png "minio")
   
 
 ## Pipeline
 
-Please check out the documentation available on folder docs under the file [flix_tutorial.pdf](./docs/flix_tutorial.pdf)
+Please check out the documentation available on folder docs under the file [Flixbus_challenge.pdf](./docs/Flixbus_challenge.pdf)
 
   
 
